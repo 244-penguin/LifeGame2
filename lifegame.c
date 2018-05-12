@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<stdbool.h>
 
-//board_a情報をboard_bにコピー
+//board_aの情報をboard_bにコピー
 void copy_board(const int w, const int h, bool board_a[w][h], bool board_b[w][h]){
 	int i, j;
 	
