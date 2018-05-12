@@ -2,7 +2,7 @@
 #include<stdbool.h>
 
 //board_aの情報をboard_bにコピー
-void copy_board(const int w, const int h, bool board_a[w][h], bool board_b[w][h]){
+void copy_board(int w, int h, bool board_a[w][h], bool board_b[w][h]){
 	int i, j;
 	
 	for(i = 0; i < h; i++){
@@ -13,15 +13,15 @@ void copy_board(const int w, const int h, bool board_a[w][h], bool board_b[w][h]
 }
 
 //盤面を標準出力に表示
-void print_board(const int w, const int h, bool current_board[w][h]){
+void print_board(int w, int h, bool current_board[w][h]){
 	int i, j;
 	
 	for(i = 0; i < h; i++){
 		for(j = 0; j < w; j++){
 			if(current_board[j][i]){
-				printf("*");
+				printf("* ");
 			}else{
-				printf("-");
+				printf("- ");
 			}
 			if(j == (w - 1)) printf("\n");
 		}
@@ -29,14 +29,14 @@ void print_board(const int w, const int h, bool current_board[w][h]){
 }
 
 //セルの周囲8マスを探索し，生きているセルの数を返す
-int search(const int w, const int h, bool current_board[w][h],int  x,int  y){
+int search(int w, int h, bool current_board[w][h],int  x,int  y){
 	int num_of_alive = 0;
 	int i, j;
 	
 	for(i = (y - 1); i <= (y + 1); i++){
 		for(j = (x - 1); j <= (x + 1); j++){
-			if(i == y && j == x) continue;
-			if(j >= 0 && i >= 0 && j < w && i < h)
+			if(i == y && j == x) continue;	//中心のセルは無視
+			if(j >= 0 && i >= 0 && j < w && i < h)	//磐面の外も無視
 				if(current_board[j][i]) ++num_of_alive;
 		}
 	}
@@ -45,28 +45,29 @@ int search(const int w, const int h, bool current_board[w][h],int  x,int  y){
 }
 
 //盤面を1世代進める
-void next(const int w, const int h, bool current_board[w][h], bool tmp_board[w][h]){
+void next(int w, int h, bool current_board[w][h], bool shadow_board[w][h]){
 	int i, j;
 	
-	copy_board(w, h, current_board, tmp_board);
+	copy_board(w, h, current_board, shadow_board);
+	
 	
 	for(i = 0; i < h; i++){
 		for(j = 0; j < w; j++){
-			if(current_board[j][i]){
-				if(search(w, h, current_board, j, i) <= 1 || search(w, h, current_board, j, i) >= 4) tmp_board[j][i] = false;
-			}else{
-				if(search(w, h, current_board, j, i) == 3) tmp_board[j][i] = true;
+			if(current_board[j][i]){	//生きているセルの周囲に，2つまたは3つの生きているセルがあればそのセルは生存
+				if(search(w, h, current_board, j, i) <= 1 || search(w, h, current_board, j, i) >= 4) shadow_board[j][i] = false;
+			}else{	//死んでいるセルの周囲に，3つの生きているセルがあれば生きているセルが誕生
+				if(search(w, h, current_board, j, i) == 3) shadow_board[j][i] = true;
 			}
 		}
 	}
 	
-	copy_board(w, h, tmp_board, current_board);
+	copy_board(w, h, shadow_board, current_board);
 
 }
 
-void lifegame(const int w,const int h, int *input, int input_length){
+void lifegame(int w,int h, int *input, int input_length){
 	bool current_board[w][h];
-	bool tmp_board[w][h];
+	bool shadow_board[w][h];
 	int i,j;
 	
 	//盤面のセルをすべて死んでいる状態で初期化
@@ -83,7 +84,7 @@ void lifegame(const int w,const int h, int *input, int input_length){
 	
 	//盤面を12世代進める
 	for(i = 0; i < 12; i++){
-		next(w, h, current_board, tmp_board);
+		next(w, h, current_board, shadow_board);
 	}
 	
 	//盤面を表示
